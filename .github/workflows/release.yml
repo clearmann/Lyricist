@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Run tests
+        run: swift test
+
+      - name: Build release binary
+        run: swift build -c release
+
+      - name: Extract version from tag
+        id: version
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: echo "VERSION=${REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create .app bundle
+        env:
+          APP_VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          APP_DIR="Lyricist.app/Contents"
+          mkdir -p "$APP_DIR/MacOS"
+          mkdir -p "$APP_DIR/Resources"
+
+          cp .build/release/Lyricist "$APP_DIR/MacOS/Lyricist"
+
+          cat > "$APP_DIR/Info.plist" << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleName</key>
+              <string>Lyricist</string>
+              <key>CFBundleDisplayName</key>
+              <string>Lyricist</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.lyricist.app</string>
+              <key>CFBundleExecutable</key>
+              <string>Lyricist</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleVersion</key>
+              <string>${APP_VERSION}</string>
+              <key>CFBundleShortVersionString</key>
+              <string>${APP_VERSION}</string>
+              <key>LSMinimumSystemVersion</key>
+              <string>13.0</string>
+              <key>LSUIElement</key>
+              <true/>
+              <key>NSAppleEventsUsageDescription</key>
+              <string>Lyricist needs access to Spotify to display synchronized lyrics.</string>
+              <key>NSHighResolutionCapable</key>
+              <true/>
+          </dict>
+          </plist>
+          PLIST
+
+      - name: Create DMG
+        env:
+          APP_VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          mkdir -p dmg_staging
+          cp -R Lyricist.app dmg_staging/
+          ln -s /Applications dmg_staging/Applications
+          hdiutil create -volname "Lyricist" \
+            -srcfolder dmg_staging \
+            -ov -format UDZO \
+            "Lyricist-${APP_VERSION}-arm64.dmg"
+
+      - name: Create ZIP archive
+        env:
+          APP_VERSION: ${{ steps.version.outputs.VERSION }}
+        run: |
+          zip -ry "Lyricist-${APP_VERSION}-arm64.zip" Lyricist.app
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            Lyricist-${{ steps.version.outputs.VERSION }}-arm64.dmg
+            Lyricist-${{ steps.version.outputs.VERSION }}-arm64.zip
