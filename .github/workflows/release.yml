@@ -71,6 +71,10 @@ jobs:
           </plist>
           PLIST
 
+      - name: Ad-hoc code sign
+        run: |
+          codesign --force --deep --sign - Lyricist.app
+
       - name: Create DMG
         env:
           APP_VERSION: ${{ steps.version.outputs.VERSION }}
