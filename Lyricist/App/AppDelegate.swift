@@ -17,7 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         spotifyBridge = SpotifyBridge()
         lyricsEngine = LyricsEngine(
             bridge: spotifyBridge,
-            provider: LRCLIBProvider()
+            providers: [LRCLIBProvider(), NeteaseProvider()]
         )
 
         setupFloatingPanel()

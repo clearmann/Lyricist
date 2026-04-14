@@ -10,16 +10,16 @@ final class LyricsEngine: ObservableObject {
     var convertToSimplified: Bool = false
 
     private let bridge: SpotifyBridge
-    private let provider: LyricsProviding
+    private let providers: [LyricsProviding]
     private let cache: LyricsCache
 
     private var currentLyrics: Lyrics = .empty
     private var lastLineIndex: Int?
     private var cancellables = Set<AnyCancellable>()
 
-    init(bridge: SpotifyBridge, provider: LyricsProviding, cache: LyricsCache = LyricsCache()) {
+    init(bridge: SpotifyBridge, providers: [LyricsProviding], cache: LyricsCache = LyricsCache()) {
         self.bridge = bridge
-        self.provider = provider
+        self.providers = providers
         self.cache = cache
 
         setupBindings()
@@ -53,7 +53,8 @@ final class LyricsEngine: ObservableObject {
 
         Task { @MainActor in
             do {
-                let lyrics = try await provider.fetchLyrics(
+                let lyrics = try await Self.fetchFromProviders(
+                    providers,
                     trackName: playback.trackName,
                     artist: playback.artist
                 )
@@ -92,6 +93,21 @@ final class LyricsEngine: ObservableObject {
             position: playback.position,
             convertToSimplified: convertToSimplified
         )
+    }
+
+    // MARK: - Provider chain
+
+    static func fetchFromProviders(
+        _ providers: [LyricsProviding],
+        trackName: String,
+        artist: String
+    ) async throws -> Lyrics {
+        for provider in providers {
+            if let lyrics = try? await provider.fetchLyrics(trackName: trackName, artist: artist) {
+                return lyrics
+            }
+        }
+        throw LyricsError.notFound
     }
 
     // MARK: - Pure functions (testable)
