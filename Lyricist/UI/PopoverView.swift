@@ -19,12 +19,32 @@ struct PopoverView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("Lyrics Offset")
+                        .font(.subheadline)
+                    Spacer()
+                    Text(offsetLabel)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(value: $settings.lyricsOffset, in: -2.0...2.0, step: 0.05)
+            }
+
+            Divider()
+
             Button("Quit Lyricist") {
                 onQuit()
             }
         }
         .padding(16)
         .frame(width: 260)
+    }
+
+    private var offsetLabel: String {
+        let ms = Int(settings.lyricsOffset * 1000)
+        return ms >= 0 ? "+\(ms)ms" : "\(ms)ms"
     }
 
     @ViewBuilder

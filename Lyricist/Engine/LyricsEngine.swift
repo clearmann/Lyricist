@@ -6,6 +6,8 @@ final class LyricsEngine: ObservableObject {
     @Published private(set) var display: LyricsDisplay?
     @Published private(set) var state: EngineState = .idle
 
+    var offset: TimeInterval = 0
+
     private let bridge: SpotifyBridge
     private let provider: LyricsProviding
     private let cache: LyricsCache
@@ -70,7 +72,7 @@ final class LyricsEngine: ObservableObject {
         }
 
         guard let index = Self.findCurrentIndex(
-            position: playback.position,
+            position: playback.position + offset,
             lines: currentLyrics.lines
         ) else {
             if lastLineIndex != nil {

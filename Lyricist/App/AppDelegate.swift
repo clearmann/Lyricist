@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setupFloatingPanel()
         setupMenuBar()
         setupOptionKeyMonitor()
+        setupOffsetBinding()
     }
 
     private func setupFloatingPanel() {
@@ -79,6 +80,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
         )
+    }
+
+    private func setupOffsetBinding() {
+        lyricsEngine.offset = settingsStore.lyricsOffset
+        settingsStore.$lyricsOffset
+            .sink { [weak self] value in self?.lyricsEngine.offset = value }
+            .store(in: &cancellables)
     }
 
     private func setupOptionKeyMonitor() {

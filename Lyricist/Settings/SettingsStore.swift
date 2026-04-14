@@ -19,6 +19,10 @@ final class SettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(isFloatingVisible, forKey: "isFloatingVisible") }
     }
 
+    @Published var lyricsOffset: Double {
+        didSet { UserDefaults.standard.set(lyricsOffset, forKey: "lyricsOffset") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
 
@@ -28,10 +32,14 @@ final class SettingsStore: ObservableObject {
         if defaults.object(forKey: "isFloatingVisible") == nil {
             defaults.set(true, forKey: "isFloatingVisible")
         }
+        if defaults.object(forKey: "lyricsOffset") == nil {
+            defaults.set(0.3, forKey: "lyricsOffset")
+        }
 
         self.fontSize = defaults.double(forKey: "fontSize")
         self.panelX = defaults.double(forKey: "panelX")
         self.panelY = defaults.double(forKey: "panelY")
         self.isFloatingVisible = defaults.bool(forKey: "isFloatingVisible")
+        self.lyricsOffset = defaults.double(forKey: "lyricsOffset")
     }
 }
