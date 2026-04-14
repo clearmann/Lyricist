@@ -7,6 +7,7 @@ final class LyricsEngine: ObservableObject {
     @Published private(set) var state: EngineState = .idle
 
     var offset: TimeInterval = 0
+    var convertToSimplified: Bool = false
 
     private let bridge: SpotifyBridge
     private let provider: LyricsProviding
@@ -88,7 +89,8 @@ final class LyricsEngine: ObservableObject {
         display = Self.buildDisplay(
             index: index,
             lines: currentLyrics.lines,
-            position: playback.position
+            position: playback.position,
+            convertToSimplified: convertToSimplified
         )
     }
 
@@ -114,12 +116,16 @@ final class LyricsEngine: ObservableObject {
         return result
     }
 
-    static func buildDisplay(index: Int, lines: [LyricsLine], position: TimeInterval) -> LyricsDisplay? {
+    static func buildDisplay(index: Int, lines: [LyricsLine], position: TimeInterval, convertToSimplified: Bool = false) -> LyricsDisplay? {
         guard index >= 0, index < lines.count else { return nil }
 
-        let previous = index > 0 ? lines[index - 1].text : nil
-        let current = lines[index].text
-        let next = index < lines.count - 1 ? lines[index + 1].text : nil
+        let convert: (String) -> String = convertToSimplified
+            ? { $0.applyingTransform(StringTransform("Hant-Hans"), reverse: false) ?? $0 }
+            : { $0 }
+
+        let previous = index > 0 ? convert(lines[index - 1].text) : nil
+        let current = convert(lines[index].text)
+        let next = index < lines.count - 1 ? convert(lines[index + 1].text) : nil
 
         let currentTime = lines[index].time
         let nextTime = index < lines.count - 1 ? lines[index + 1].time : lines[index].time + 5.0

@@ -87,6 +87,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         settingsStore.$lyricsOffset
             .sink { [weak self] value in self?.lyricsEngine.offset = value }
             .store(in: &cancellables)
+
+        lyricsEngine.convertToSimplified = settingsStore.convertToSimplified
+        settingsStore.$convertToSimplified
+            .sink { [weak self] value in self?.lyricsEngine.convertToSimplified = value }
+            .store(in: &cancellables)
     }
 
     private func setupOptionKeyMonitor() {

@@ -23,6 +23,10 @@ final class SettingsStore: ObservableObject {
         didSet { UserDefaults.standard.set(lyricsOffset, forKey: "lyricsOffset") }
     }
 
+    @Published var convertToSimplified: Bool {
+        didSet { UserDefaults.standard.set(convertToSimplified, forKey: "convertToSimplified") }
+    }
+
     init() {
         let defaults = UserDefaults.standard
 
@@ -41,5 +45,6 @@ final class SettingsStore: ObservableObject {
         self.panelY = defaults.double(forKey: "panelY")
         self.isFloatingVisible = defaults.bool(forKey: "isFloatingVisible")
         self.lyricsOffset = defaults.double(forKey: "lyricsOffset")
+        self.convertToSimplified = defaults.bool(forKey: "convertToSimplified")
     }
 }

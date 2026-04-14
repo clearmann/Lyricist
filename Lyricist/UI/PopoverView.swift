@@ -17,6 +17,8 @@ struct PopoverView: View {
                     onTogglePanel()
                 }
 
+            Toggle("Simplified Chinese", isOn: $settings.convertToSimplified)
+
             Divider()
 
             VStack(alignment: .leading, spacing: 4) {
